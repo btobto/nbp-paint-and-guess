@@ -1,0 +1,22 @@
+{
+    "name": "paint-and-guess",
+    "version": "1.0.0",
+    "description": "",
+    "scripts": {
+        "server:watch": "cd ./server && npm run watch",
+        "server:nodemon": "cd ./server && npm run nodemon",
+        "client:watch": "cd ./client && npm run watch",
+        "http": "cd ./client && http-server"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "workspaces": [
+        "./client",
+        "./server",
+        "./lib"
+    ],
+    "devDependencies": {
+        "http-server": "^14.1.1"
+    }
+}

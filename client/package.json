@@ -1,0 +1,20 @@
+{
+    "name": "@paint-and-guess/paint-and-guess-client",
+    "version": "1.0.0",
+    "description": "",
+    "scripts": {
+        "build": "webpack --config ./webpack.config.js",
+        "watch": "webpack --watch --config ./webpack.config.js"
+    },
+    "author": "andrija-tosic",
+    "license": "ISC",
+    "dependencies": {
+        "redis": "^4.5.1",
+        "rxjs": "^7.8.0",
+        "socket.io-client": "^4.5.4",
+        "ts-loader": "^9.4.2",
+        "typescript": "^4.9.4",
+        "webpack": "^5.75.0",
+        "webpack-cli": "^5.0.1"
+    }
+}
