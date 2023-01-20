@@ -35,6 +35,40 @@ export class AppServer {
         this.sockets();
         this.listen();
         this.events();
+        this.loadWords();
+    }
+
+    private loadWords() {
+        const words: string[] = [
+            'Strawberry',
+            'Eclipse',
+            'Chandelier',
+            'Ketchup',
+            'Toothpaste',
+            'Rainbow',
+            'Boardgame',
+            'Beehive',
+            'Lemon',
+            'Wreath',
+            'Waffles',
+            'Bubble',
+            'Whistle',
+            'Snowball',
+            'Bouquet',
+            'Headphones',
+            'Fireworks',
+            'Igloo',
+            'Lawnmower',
+            'Summer',
+            'Whisk',
+            'Cupcake',
+            'Bruise',
+            'Fog',
+            'Crust',
+            'Battery',
+        ];
+
+        InMemoryDatabase.client.SADD('words', words).then();
     }
 
     private createApp(): void {
@@ -160,36 +194,7 @@ export class AppServer {
 
                 this.drawingPlayerSocket = socket;
 
-                const words: string[] = [
-                    'Strawberry',
-                    'Eclipse',
-                    'Chandelier',
-                    'Ketchup',
-                    'Toothpaste',
-                    'Rainbow',
-                    'Boardgame',
-                    'Beehive',
-                    'Lemon',
-                    'Wreath',
-                    'Waffles',
-                    'Bubble',
-                    'Whistle',
-                    'Snowball',
-                    'Bouquet',
-                    'Headphones',
-                    'Fireworks',
-                    'Igloo',
-                    'Lawnmower',
-                    'Summer',
-                    'Whisk',
-                    'Cupcake',
-                    'Bruise',
-                    'Fog',
-                    'Crust',
-                    'Battery',
-                ];
-
-                const word = words[Math.floor(Math.random() * words.length)];
+                const word = (await InMemoryDatabase.client.SRANDMEMBER('words'))!;
 
                 this.game.start(word, socket.id);
 
@@ -215,7 +220,7 @@ export class AppServer {
             socket.on(EVENTS.FROM_CLIENT.MESSAGE, async (message: Message) => {
                 console.log('[server](message): %s', JSON.stringify(message));
 
-                if (Math.random() < 0.2) {
+                if ((await InMemoryDatabase.client.LLEN('chat')) > 20) {
                     await InMemoryDatabase.client.LTRIM('chat', -10, -1);
                 }
 
