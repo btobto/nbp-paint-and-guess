@@ -3,7 +3,6 @@
 1. `npm run server:watch`
 2. `npm run server:nodemon`
 3. `npm run client:watch`
-4. `npm run http`
 
 Aplikacija je na adresi `http://localhost:8080`.
 

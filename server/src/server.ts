@@ -66,6 +66,8 @@ export class AppServer {
             'Fog',
             'Crust',
             'Battery',
+            'Frog',
+            'Monkey',
         ];
 
         InMemoryDatabase.client.SADD('words', words).then();
@@ -128,7 +130,7 @@ export class AppServer {
     }
 
     public revealWord(word: string): void {
-        this.drawingPlayerSocket.broadcast.emit(EVENTS.FROM_SERVER.WORD_REVEAL, word);
+        this.drawingPlayerSocket.to(this.roomId).emit(EVENTS.FROM_SERVER.WORD_REVEAL, word);
     }
 
     public emitTime(seconds: number): void {
@@ -200,7 +202,7 @@ export class AppServer {
 
                 // await InMemoryDatabase.client.del('players');
 
-                await InMemoryDatabase.client.zAdd(
+                await InMemoryDatabase.client.ZADD(
                     'players',
                     Array.from(this.game.players.values()).map(player => {
                         return {
@@ -210,7 +212,7 @@ export class AppServer {
                     })
                 );
 
-                socket.broadcast.emit(EVENTS.FROM_CLIENT.START, '_'.repeat(word.length));
+                socket.to(this.roomId).emit(EVENTS.FROM_CLIENT.START, '_'.repeat(word.length));
 
                 socket.emit(EVENTS.FROM_SERVER.WORD_REVEAL, word); // emitted only to player who's drawing
 
@@ -273,11 +275,15 @@ export class AppServer {
             });
 
             socket.on(EVENTS.FROM_CLIENT.IMAGE, (imgBase64: string) => {
-                socket.broadcast.emit(EVENTS.FROM_SERVER.IMAGE, imgBase64);
+                if (socket.id === this.drawingPlayerSocket.id) {
+                    this.drawingPlayerSocket.to(this.roomId).emit(EVENTS.FROM_SERVER.IMAGE, imgBase64);
+                }
             });
 
             socket.on(EVENTS.FROM_CLIENT.CLEAR_CANVAS, () => {
-                socket.broadcast.emit(EVENTS.FROM_CLIENT.CLEAR_CANVAS);
+                if (socket.id === this.drawingPlayerSocket.id) {
+                    this.drawingPlayerSocket.to(this.roomId).emit(EVENTS.FROM_CLIENT.CLEAR_CANVAS);
+                }
             });
 
             socket.on(EVENTS.FROM_SERVER.DISCONNECT, () => {
@@ -288,7 +294,7 @@ export class AppServer {
                     this.io.to(this.roomId).emit(EVENTS.FROM_SERVER.STOP);
                 }
 
-                socket.broadcast.emit(EVENTS.FROM_SERVER.PLAYER_LEFT, socket.id);
+                this.io.to(this.roomId).emit(EVENTS.FROM_SERVER.PLAYER_LEFT, socket.id);
             });
         });
     }

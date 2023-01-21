@@ -18,5 +18,8 @@
     ],
     "devDependencies": {
         "http-server": "^14.1.1"
+    },
+    "dependencies": {
+        "remove": "^0.1.5"
     }
 }

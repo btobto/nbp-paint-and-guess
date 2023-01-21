@@ -47,17 +47,17 @@ SocketIO.listenOnSocket(EVENTS.FROM_SERVER.MESSAGE_HISTORY).subscribe(messages =
 // emits when current player is drawing
 SocketIO.emitOnSocket(start$).subscribe(({ socket }) => {
     game.canDraw$.next(true);
-
     setupForGameStart();
     UI.show(Canvas.clearCanvasButton);
     UI.hide(messageInputDiv);
-
     socket.emit(EVENTS.FROM_CLIENT.START);
 });
 
 // emits when someone else is drawing
 game.start$.subscribe((word: string) => {
     console.log(`Game started: ${word}`);
+
+    game.canDraw$.next(false);
 
     setupForGameStart();
 

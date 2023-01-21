@@ -59,14 +59,11 @@ export class Game {
                 })
             )
             .subscribe(this.playerLeft$);
-
-        this.canDraw$.next(true);
     }
 
     private start(word: string) {
         this.start$.next(word);
         this.revealedWord$.next('_ '.repeat(word.length));
-        this.canDraw$.next(false);
     }
 
     private stop() {
