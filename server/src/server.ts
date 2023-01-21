@@ -15,6 +15,7 @@ import { Game } from './game';
 import { InMemoryDatabase } from './in-memory-db';
 import { createClient } from 'redis';
 import { createAdapter } from '@socket.io/redis-adapter';
+import * as crypto from 'crypto';
 
 export class AppServer {
     private app: express.Application;
@@ -87,7 +88,7 @@ export class AppServer {
 
         this.serverPort = process.env.SERVER_PORT!;
 
-        this.roomId = 'room:' + this.serverPort;
+        this.roomId = 'room:' + crypto.randomUUID();
     }
 
     private createServer(): void {
@@ -134,9 +135,9 @@ export class AppServer {
     }
 
     public emitTime(seconds: number): void {
-        this.io.to(this.roomId).emit(EVENTS.FROM_SERVER.TIME, seconds);
+        this.io.local.emit(EVENTS.FROM_SERVER.TIME, seconds);
         if (seconds === 0) {
-            this.io.to(this.roomId).emit(EVENTS.FROM_SERVER.STOP);
+            this.io.local.emit(EVENTS.FROM_SERVER.STOP);
         }
     }
 
@@ -144,9 +145,9 @@ export class AppServer {
         this.io.on(EVENTS.FROM_CLIENT.CONNECT, (socket: Socket<ClientToServerEvents, ServerToClientEvents>) => {
             socket.join(this.roomId);
 
-            this.io.to(this.roomId).emit(EVENTS.FROM_SERVER.ONLINE_PLAYERS, Array.from(this.game.players.values()));
+            this.io.local.emit(EVENTS.FROM_SERVER.ONLINE_PLAYERS, Array.from(this.game.players.values()));
 
-            InMemoryDatabase.client.LRANGE('chat', -10, -1).then(messages => {
+            InMemoryDatabase.client.LRANGE('chat', 0, 10).then(messages => {
                 const messageHistory: Message[] = messages.map(messageString => JSON.parse(messageString)).reverse();
 
                 socket.emit(EVENTS.FROM_SERVER.MESSAGE_HISTORY, messageHistory);
@@ -174,14 +175,14 @@ export class AppServer {
 
                 const leaderBoard = await InMemoryDatabase.client.ZRANGE_WITHSCORES('players', 0, -1, { REV: true });
 
-                this.io.to(this.roomId).emit(
+                this.io.local.emit(
                     EVENTS.FROM_SERVER.LEADERBOARD,
                     leaderBoard.map(results => {
                         return { score: results.score, name: results.value };
                     })
                 );
 
-                this.io.to(this.roomId).emit(EVENTS.FROM_SERVER.PLAYER_JOIN, newPlayer);
+                this.io.local.emit(EVENTS.FROM_SERVER.PLAYER_JOIN, newPlayer);
 
                 socket.emit(EVENTS.FROM_SERVER.GAME_STATE, {
                     running: this.game.running,
@@ -222,8 +223,8 @@ export class AppServer {
             socket.on(EVENTS.FROM_CLIENT.MESSAGE, async (message: Message) => {
                 console.log('[server](message): %s', JSON.stringify(message));
 
-                if ((await InMemoryDatabase.client.LLEN('chat')) > 20) {
-                    await InMemoryDatabase.client.LTRIM('chat', -10, -1);
+                if ((await InMemoryDatabase.client.LLEN('chat')) > 15) {
+                    await InMemoryDatabase.client.LTRIM('chat', 0, 10);
                 }
 
                 if (
@@ -242,16 +243,14 @@ export class AppServer {
                             REV: true,
                         });
 
-                        this.io.to(this.roomId).emit(
+                        this.io.local.emit(
                             EVENTS.FROM_SERVER.LEADERBOARD,
                             leaderBoard.map(results => {
                                 return { score: results.score, name: results.value };
                             })
                         );
 
-                        this.io
-                            .to(this.roomId)
-                            .emit(EVENTS.FROM_SERVER.ONLINE_PLAYERS, Array.from(this.game.players.values()));
+                        this.io.local.emit(EVENTS.FROM_SERVER.ONLINE_PLAYERS, Array.from(this.game.players.values()));
 
                         socket.broadcast.emit(EVENTS.FROM_CLIENT.MESSAGE, {
                             senderId: message.senderId,
@@ -264,7 +263,7 @@ export class AppServer {
                         setTimeout(() => {
                             if (this.game.correctGuesses.size === this.game.players.size - 1) {
                                 this.game.stop();
-                                this.io.to(this.roomId).emit(EVENTS.FROM_SERVER.STOP);
+                                this.io.local.emit(EVENTS.FROM_SERVER.STOP);
                             }
                         }, 3000);
                     }
@@ -291,10 +290,10 @@ export class AppServer {
                 this.game.players.delete(socket.id);
                 if (this.game.running && socket.id === this.game.drawingPlayerId) {
                     this.game.stop();
-                    this.io.to(this.roomId).emit(EVENTS.FROM_SERVER.STOP);
+                    this.io.local.emit(EVENTS.FROM_SERVER.STOP);
                 }
 
-                this.io.to(this.roomId).emit(EVENTS.FROM_SERVER.PLAYER_LEFT, socket.id);
+                this.io.local.emit(EVENTS.FROM_SERVER.PLAYER_LEFT, socket.id);
             });
         });
     }
