@@ -276,13 +276,13 @@ export class AppServer {
 
             socket.on(EVENTS.FROM_CLIENT.IMAGE, (imgBase64: string) => {
                 if (socket.id === this.drawingPlayerSocket.id) {
-                    this.drawingPlayerSocket.to(this.roomId).emit(EVENTS.FROM_SERVER.IMAGE, imgBase64);
+                    this.io.local.emit(EVENTS.FROM_SERVER.IMAGE, imgBase64);
                 }
             });
 
             socket.on(EVENTS.FROM_CLIENT.CLEAR_CANVAS, () => {
                 if (socket.id === this.drawingPlayerSocket.id) {
-                    this.drawingPlayerSocket.to(this.roomId).emit(EVENTS.FROM_CLIENT.CLEAR_CANVAS);
+                    this.io.local.emit(EVENTS.FROM_CLIENT.CLEAR_CANVAS);
                 }
             });
 
