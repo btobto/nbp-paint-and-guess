@@ -1,5 +1,7 @@
 # Pokretanje
 
+`npm i`
+
 1. `npm run server:watch`
 2. `npm run server:nodemon`
 3. `npm run client:watch`
