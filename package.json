@@ -6,7 +6,7 @@
         "server:watch": "cd ./server && npm run watch",
         "server:nodemon": "cd ./server && npm run nodemon",
         "client:watch": "cd ./client && npm run watch",
-        "http": "cd ./client && http-server"
+        "client:http": "cd ./client && live-server"
     },
     "keywords": [],
     "author": "",
@@ -20,6 +20,7 @@
         "http-server": "^14.1.1"
     },
     "dependencies": {
+        "live-server": "^1.2.2",
         "remove": "^0.1.5"
     }
 }
