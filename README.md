@@ -1,5 +1,8 @@
 # Pokretanje
 
+- Andrija Tošić 18015
+- Božidar Tošić 18016
+
 `npm i`
 
 1. `npm run server:watch`
